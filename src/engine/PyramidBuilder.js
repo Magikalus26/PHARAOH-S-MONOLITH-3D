@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createLimestoneBlockPBR } from './ProceduralPBR.js';
 
 export const PYRAMID_LAYERS = 144;
 export const BLOCK_SIZE = 1.5;
@@ -274,12 +275,16 @@ export class PyramidBuilder {
     this._color = new THREE.Color();
     this._zeroMatrix = new THREE.Matrix4().makeScale(0, 0, 0);
 
-    // Build shared beveled geometry & matte sandstone material
+    // Build shared beveled geometry & 512x512 stylized matte limestone PBR material
     this.blockGeometry = createBeveledBlockGeometry(BLOCK_SIZE - 0.018, 0.135);
-    this.sandstoneTexture = createSandstoneTexture();
+    this.limestonePbr = createLimestoneBlockPBR();
+    this.sandstoneTexture = this.limestonePbr.map;
     this.blockMaterial = new THREE.MeshStandardMaterial({
-      map: this.sandstoneTexture,
-      roughness: 0.84,
+      map: this.limestonePbr.map,
+      normalMap: this.limestonePbr.normalMap,
+      normalScale: new THREE.Vector2(0.75, 0.75),
+      roughnessMap: this.limestonePbr.roughnessMap,
+      roughness: 1.0,
       metalness: 0.03,
       color: 0xffffff
     });

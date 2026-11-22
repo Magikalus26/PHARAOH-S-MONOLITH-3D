@@ -68,15 +68,15 @@ export class PhysicsSystem {
   }
 
   _initQuarryRockPool() {
-    // Slightly irregular faceted rough limestone boulder
-    const geo = new THREE.DodecahedronGeometry(0.36, 0);
+    // Watertight sculpted rough limestone boulder (position-based displacement keeps all seams welded!)
+    const geo = new THREE.DodecahedronGeometry(0.36, 1);
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       const vx = pos.getX(i);
       const vy = pos.getY(i);
       const vz = pos.getZ(i);
-      const wobble = 0.86 + ((i * 37) % 10) * 0.032;
-      pos.setXYZ(i, vx * wobble, vy * (wobble * 0.88), vz * wobble);
+      const wobble = 0.92 + Math.sin(vx * 9.5 + vy * 7.2) * Math.cos(vz * 8.4) * 0.14;
+      pos.setXYZ(i, vx * wobble, vy * (wobble * 0.84), vz * wobble);
     }
     geo.computeVertexNormals();
 
@@ -102,14 +102,17 @@ export class PhysicsSystem {
   }
 
   _initParticlePool() {
-    const geo = new THREE.BoxGeometry(0.14, 0.14, 0.14);
+    // 1. Crisp faceted stone chips, copper sparks & glistening water droplets
+    const chipGeo = new THREE.OctahedronGeometry(0.085, 0);
     for (let i = 0; i < MAX_PARTICLES; i++) {
-      const mat = new THREE.MeshBasicMaterial({
+      const mat = new THREE.MeshStandardMaterial({
         color: 0xe6c88c,
+        roughness: 0.45,
+        metalness: 0.15,
         transparent: true,
-        opacity: 0.8
+        opacity: 0.9
       });
-      const mesh = new THREE.Mesh(geo, mat);
+      const mesh = new THREE.Mesh(chipGeo, mat);
       mesh.visible = false;
       this.scene.add(mesh);
       this.particles.push({
@@ -119,8 +122,34 @@ export class PhysicsSystem {
         vel: new THREE.Vector3(),
         life: 0,
         maxLife: 0.6,
-        gravity: -8,
+        gravity: -11,
         baseScale: 1
+      });
+    }
+
+    // 2. Soft volumetric billowing dust cloud sprite pool (block thuds & rock impacts!)
+    this.dustClouds = [];
+    const dustTex = this.sceneManager.dustSpriteTexture;
+    for (let i = 0; i < 42; i++) {
+      const mat = new THREE.SpriteMaterial({
+        map: dustTex,
+        color: 0xf4dfb3,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false
+      });
+      const sprite = new THREE.Sprite(mat);
+      sprite.visible = false;
+      this.scene.add(sprite);
+      this.dustClouds.push({
+        active: false,
+        sprite,
+        pos: new THREE.Vector3(),
+        vel: new THREE.Vector3(),
+        life: 0,
+        maxLife: 0.75,
+        startScale: 0.7,
+        endScale: 2.3
       });
     }
   }
@@ -130,9 +159,9 @@ export class PhysicsSystem {
     geo.rotateX(-Math.PI / 2);
     for (let i = 0; i < MAX_WET_DECALS; i++) {
       const mat = new THREE.MeshStandardMaterial({
-        color: 0x7d572a,
-        roughness: 0.18,
-        metalness: 0.22,
+        color: 0x6f4a22,
+        roughness: 0.14,
+        metalness: 0.28,
         transparent: true,
         opacity: 0,
         depthWrite: false
@@ -152,10 +181,13 @@ export class PhysicsSystem {
   _buildSledMesh() {
     const g = new THREE.Group();
     const wood = this.sceneManager.woodMaterial;
+    const bronze = this.sceneManager.bronzeMaterial;
+    const rope = this.sceneManager.ropeMaterial;
 
-    // Two heavy upturned wooden runners (local +Z is front of sled)
+    // Two heavy upturned wooden runners (local +Z is front of sled) + forged bronze straps
     const runnerGeo = new THREE.BoxGeometry(0.24, 0.22, 3.6);
-    const tipGeo = new THREE.BoxGeometry(0.24, 0.22, 0.72);
+    const tipGeo = new THREE.BoxGeometry(0.24, 0.22, 0.74);
+    const strapGeo = new THREE.BoxGeometry(0.28, 0.25, 0.20);
     for (const sx of [-0.95, 0.95]) {
       const runner = new THREE.Mesh(runnerGeo, wood);
       runner.position.set(sx, 0.11, 0);
@@ -163,57 +195,75 @@ export class PhysicsSystem {
       runner.receiveShadow = true;
       g.add(runner);
 
-      // Upturned curved prow tip at +Z
+      // Upturned curved prow tip at +Z + bronze prow shoe
       const tip = new THREE.Mesh(tipGeo, wood);
       tip.position.set(sx, 0.28, 1.98);
       tip.rotation.x = -0.58;
       tip.castShadow = true;
       g.add(tip);
+
+      // Bolted bronze runner brackets
+      for (const bz of [-1.2, 0.0, 1.25]) {
+        const strap = new THREE.Mesh(strapGeo, bronze);
+        strap.position.set(sx, 0.13, bz);
+        g.add(strap);
+      }
+
+      // Bronze hitch ring at front prow
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.025, 6, 12), bronze);
+      ring.position.set(sx * 0.72, 0.44, 1.70);
+      g.add(ring);
     }
 
     // Thick cedar plank cargo deck
-    const deck = new THREE.Mesh(new THREE.BoxGeometry(2.25, 0.16, 3.05), wood);
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(2.26, 0.16, 3.06), wood);
     deck.position.set(0, 0.30, -0.05);
     deck.castShadow = true;
     deck.receiveShadow = true;
     g.add(deck);
 
-    // Side & rear wooden cargo braces
-    const rearRail = new THREE.Mesh(new THREE.BoxGeometry(2.25, 0.34, 0.16), wood);
+    // Side & rear wooden cargo braces + corner bronze brackets
+    const rearRail = new THREE.Mesh(new THREE.BoxGeometry(2.26, 0.34, 0.16), wood);
     rearRail.position.set(0, 0.52, -1.52);
     rearRail.castShadow = true;
     g.add(rearRail);
 
-    const frontBeam = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.22, 0.22), wood);
+    const frontBeam = new THREE.Mesh(new THREE.BoxGeometry(2.32, 0.22, 0.22), wood);
     frontBeam.position.set(0, 0.44, 1.56);
     frontBeam.castShadow = true;
     g.add(frontBeam);
 
-    // Front Clay Water Jar mounted on the prow for the wet-sand glide mechanic!
-    const jarMat = new THREE.MeshStandardMaterial({
-      color: 0xb65836,
-      roughness: 0.76,
-      metalness: 0.05
-    });
-    const jarBody = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 8), jarMat);
-    jarBody.scale.set(0.95, 1.25, 0.95);
+    // Front Clay Water Jar strapped onto the prow for the wet-sand glide mechanic!
+    const jarMat = this.sceneManager.terracottaMaterial;
+    const jarBody = new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10), jarMat);
+    jarBody.scale.set(0.95, 1.26, 0.95);
     jarBody.position.set(0, 0.72, 1.65);
-    jarBody.rotation.x = 0.42; // tilted forward ready to pour
+    jarBody.rotation.x = 0.42;
     jarBody.castShadow = true;
     g.add(jarBody);
 
-    const jarNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.19, 0.28, 10), jarMat);
+    const jarNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.19, 0.28, 12), jarMat);
     jarNeck.position.set(0, 0.98, 1.84);
     jarNeck.rotation.x = 0.48;
     g.add(jarNeck);
 
-    // Shimmering water stream pouring onto sand ahead of runners when towed
-    const streamMat = new THREE.MeshBasicMaterial({
-      color: 0x6fd0f5,
+    // Braided hemp harness lashing around water jar
+    const jarStrap = new THREE.Mesh(new THREE.TorusGeometry(0.31, 0.045, 6, 14), rope);
+    jarStrap.position.set(0, 0.72, 1.66);
+    jarStrap.rotation.x = Math.PI * 0.5 + 0.42;
+    g.add(jarStrap);
+
+    // Shimmering translucent water stream pouring onto sand ahead of runners when towed
+    const streamMat = new THREE.MeshStandardMaterial({
+      color: 0x7adbf8,
+      emissive: 0x246b88,
+      emissiveIntensity: 0.35,
+      roughness: 0.12,
+      metalness: 0.2,
       transparent: true,
-      opacity: 0.78
+      opacity: 0.8
     });
-    const stream = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.085, 1.05, 6), streamMat);
+    const stream = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.09, 1.05, 8), streamMat);
     stream.position.set(0, 0.52, 2.08);
     stream.rotation.x = 0.24;
     stream.visible = false;
@@ -241,12 +291,11 @@ export class PhysicsSystem {
       this.sled.cargoMeshes.push(bm);
     }
 
-    // Dynamic hemp tow-ropes (in world space, connecting sled front beam to player hands when pulling)
-    const ropeMat = new THREE.MeshStandardMaterial({ color: 0xc8a364, roughness: 0.95 });
-    const ropeGeo = new THREE.CylinderGeometry(0.032, 0.032, 1, 5);
+    // Dynamic braided hemp tow-ropes connecting sled front hitch rings to player hands
+    const ropeGeo = new THREE.CylinderGeometry(0.036, 0.036, 1, 6);
     ropeGeo.rotateX(Math.PI * 0.5);
-    this.sled.ropeLeft = new THREE.Mesh(ropeGeo, ropeMat);
-    this.sled.ropeRight = new THREE.Mesh(ropeGeo, ropeMat);
+    this.sled.ropeLeft = new THREE.Mesh(ropeGeo, rope);
+    this.sled.ropeRight = new THREE.Mesh(ropeGeo, rope);
     this.sled.ropeLeft.visible = false;
     this.sled.ropeRight.visible = false;
     this.scene.add(this.sled.ropeLeft);
@@ -266,8 +315,38 @@ export class PhysicsSystem {
     }
   }
 
-  /** Spawns a burst of dust/chip/water particles from the pool */
-  spawnParticles(origin, count, colorHex, speed = 2.8, gravity = -9.5, life = 0.55, scale = 1.0) {
+  /** Spawns soft billowing volumetric dust clouds (block thuds & quarry rock impacts) */
+  spawnDustCloud(origin, count = 4, colorHex = 0xf4dfb3, size = 1.65) {
+    let spawned = 0;
+    for (let i = 0; i < this.dustClouds.length && spawned < count; i++) {
+      const dc = this.dustClouds[i];
+      if (dc.active) continue;
+      dc.active = true;
+      dc.pos.set(
+        origin.x + (Math.random() - 0.5) * 0.9,
+        Math.max(0.25, origin.y + (Math.random() - 0.3) * 0.4),
+        origin.z + (Math.random() - 0.5) * 0.9
+      );
+      dc.vel.set(
+        (Math.random() - 0.5) * 1.4,
+        0.55 + Math.random() * 0.95,
+        (Math.random() - 0.5) * 1.4
+      );
+      dc.life = 0.65 + Math.random() * 0.35;
+      dc.maxLife = dc.life;
+      dc.startScale = size * 0.45;
+      dc.endScale = size * (1.15 + Math.random() * 0.45);
+      dc.sprite.material.color.setHex(colorHex);
+      dc.sprite.material.opacity = 0.62;
+      dc.sprite.position.copy(dc.pos);
+      dc.sprite.scale.setScalar(dc.startScale);
+      dc.sprite.visible = true;
+      spawned++;
+    }
+  }
+
+  /** Spawns a burst of faceted stone chips, copper sparks, or glistening water droplets */
+  spawnParticles(origin, count, colorHex, speed = 2.8, gravity = -11.0, life = 0.55, scale = 1.0) {
     let spawned = 0;
     for (let i = 0; i < this.particles.length && spawned < count; i++) {
       const p = this.particles[i];
@@ -275,16 +354,16 @@ export class PhysicsSystem {
       p.active = true;
       p.pos.copy(origin);
       p.vel.set(
-        (Math.random() - 0.5) * speed * 1.4,
-        0.7 + Math.random() * speed,
-        (Math.random() - 0.5) * speed * 1.4
+        (Math.random() - 0.5) * speed * 1.5,
+        0.9 + Math.random() * speed,
+        (Math.random() - 0.5) * speed * 1.5
       );
       p.life = life * (0.7 + Math.random() * 0.5);
       p.maxLife = p.life;
       p.gravity = gravity;
-      p.baseScale = scale * (0.7 + Math.random() * 0.65);
+      p.baseScale = scale * (0.65 + Math.random() * 0.7);
       p.mesh.material.color.setHex(colorHex);
-      p.mesh.material.opacity = 0.85;
+      p.mesh.material.opacity = 0.92;
       p.mesh.position.copy(p.pos);
       p.mesh.scale.setScalar(p.baseScale);
       p.mesh.visible = true;
@@ -860,7 +939,8 @@ export class PhysicsSystem {
             r.vel.z *= 0.72;
             r.angVel.multiplyScalar(0.68);
             this.audio.playRockClack(Math.min(1, impact / 8));
-            this.spawnParticles(r.pos, 3, 0xe4c287, 1.5, -7.0, 0.38, 0.75);
+            this.spawnParticles(r.pos, 3, 0xe4c287, 1.8, -10.0, 0.38, 0.8);
+            this.spawnDustCloud(r.pos, 2, 0xeed5a2, 1.15);
           } else {
             r.vel.y = 0;
             r.vel.x *= Math.exp(-9 * dt);
@@ -904,6 +984,7 @@ export class PhysicsSystem {
   }
 
   _updateParticles(dt) {
+    // 1. Tumbling stone chips, sparks & water droplets
     for (const p of this.particles) {
       if (!p.active) continue;
       p.life -= dt;
@@ -916,12 +997,32 @@ export class PhysicsSystem {
       p.pos.addScaledVector(p.vel, dt);
       if (p.pos.y < 0.05) {
         p.pos.y = 0.05;
-        p.vel.y *= -0.2;
+        p.vel.y *= -0.25;
       }
       const frac = p.life / p.maxLife;
       p.mesh.position.copy(p.pos);
-      p.mesh.scale.setScalar(p.baseScale * frac);
-      p.mesh.material.opacity = 0.85 * frac;
+      p.mesh.rotation.x += dt * 9;
+      p.mesh.rotation.y += dt * 7;
+      p.mesh.scale.setScalar(p.baseScale * (0.35 + 0.65 * frac));
+      p.mesh.material.opacity = 0.92 * frac;
+    }
+
+    // 2. Soft billowing volumetric dust clouds
+    for (const dc of this.dustClouds) {
+      if (!dc.active) continue;
+      dc.life -= dt;
+      if (dc.life <= 0) {
+        dc.active = false;
+        dc.sprite.visible = false;
+        continue;
+      }
+      const prog = 1 - dc.life / dc.maxLife;
+      dc.vel.multiplyScalar(Math.exp(-2.8 * dt));
+      dc.pos.addScaledVector(dc.vel, dt);
+      dc.sprite.position.copy(dc.pos);
+      const scale = dc.startScale + (dc.endScale - dc.startScale) * Math.sqrt(prog);
+      dc.sprite.scale.setScalar(scale);
+      dc.sprite.material.opacity = 0.58 * (1 - prog) * (1 - prog);
     }
   }
 }

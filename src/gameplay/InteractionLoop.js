@@ -73,50 +73,105 @@ export class InteractionLoop {
   _buildFirstPersonViewmodel() {
     this.vmRoot = new THREE.Group();
 
-    // Pickaxe (copper curved blade + cedar wood shaft)
+    // Sculpted First-Person Copper Pickaxe (carved cedar handle, wrapped leather grip,
+    // braided hemp lashing, and arched hammered metallic copper blade!)
     this.vmPickaxe = new THREE.Group();
-    const shaft = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.025, 0.03, 0.68, 6),
-      this.sceneManager.woodMaterial
-    );
-    shaft.position.set(0, -0.05, 0);
+
+    // Tapered carved cedar handle
+    const shaftGeo = new THREE.CylinderGeometry(0.021, 0.028, 0.64, 10);
+    const shaft = new THREE.Mesh(shaftGeo, this.sceneManager.woodMaterial);
+    shaft.position.set(0, -0.04, 0);
     this.vmPickaxe.add(shaft);
 
-    const copperMat = new THREE.MeshStandardMaterial({
-      color: 0xe2924d,
-      emissive: 0x3b1c08,
-      emissiveIntensity: 0.35,
-      metalness: 0.45,
-      roughness: 0.35
+    // Wrapped dark stitched leather handle grip + ribbed bands + bronze pommel cap
+    const leatherMat = new THREE.MeshStandardMaterial({
+      color: 0x4b2917,
+      normalMap: this.sceneManager.ropeMaterial.normalMap,
+      roughness: 0.78,
+      metalness: 0.06
     });
-    const head = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.055, 0.055), copperMat);
-    head.position.set(0, 0.25, 0);
-    this.vmPickaxe.add(head);
+    const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.030, 0.031, 0.22, 10), leatherMat);
+    grip.position.set(0, -0.22, 0);
+    this.vmPickaxe.add(grip);
 
-    const tipL = new THREE.Mesh(new THREE.ConeGeometry(0.034, 0.14, 4), copperMat);
-    tipL.rotation.z = Math.PI * 0.56;
-    tipL.position.set(-0.23, 0.22, 0);
-    this.vmPickaxe.add(tipL);
+    for (let i = 0; i < 4; i++) {
+      const wrap = new THREE.Mesh(new THREE.TorusGeometry(0.030, 0.0055, 6, 12), leatherMat);
+      wrap.rotation.x = Math.PI * 0.5 + 0.16;
+      wrap.position.set(0, -0.29 + i * 0.048, 0);
+      this.vmPickaxe.add(wrap);
+    }
 
-    const tipR = new THREE.Mesh(new THREE.ConeGeometry(0.034, 0.12, 4), copperMat);
-    tipR.rotation.z = -Math.PI * 0.56;
-    tipR.position.set(0.22, 0.23, 0);
-    this.vmPickaxe.add(tipR);
+    const pommel = new THREE.Mesh(new THREE.SphereGeometry(0.032, 8, 6), this.sceneManager.bronzeMaterial);
+    pommel.position.set(0, -0.35, 0);
+    this.vmPickaxe.add(pommel);
 
-    this.vmPickaxe.position.set(0.34, -0.34, -0.78);
-    this.vmPickaxe.rotation.set(0.22, -0.58, 0.16);
+    // Braided hemp collar lashing under the pick head
+    const lashing = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.035, 0.031, 0.07, 10),
+      this.sceneManager.ropeMaterial
+    );
+    lashing.position.set(0, 0.21, 0);
+    this.vmPickaxe.add(lashing);
+
+    // Hammered metallic copper material catching golden-hour PMREM glints
+    const copperBladeMat = new THREE.MeshStandardMaterial({
+      color: 0xe38a46,
+      emissive: 0x3b1b06,
+      emissiveIntensity: 0.22,
+      metalness: 0.84,
+      roughness: 0.24
+    });
+
+    // Sculpted arched pickaxe head (ExtrudeGeometry sweeping smoothly from sharp pick to beveled adze!)
+    const bladeShape = new THREE.Shape();
+    bladeShape.moveTo(-0.27, -0.065); // curved pointed pick tip (left)
+    bladeShape.quadraticCurveTo(-0.12, 0.025, 0.0, 0.032);
+    bladeShape.quadraticCurveTo(0.11, 0.025, 0.21, -0.022); // flared mason's adze (right)
+    bladeShape.lineTo(0.225, -0.062);
+    bladeShape.quadraticCurveTo(0.10, -0.022, 0.0, -0.022);
+    bladeShape.quadraticCurveTo(-0.11, -0.024, -0.27, -0.065);
+
+    const bladeGeo = new THREE.ExtrudeGeometry(bladeShape, {
+      depth: 0.036,
+      bevelEnabled: true,
+      bevelSegments: 2,
+      steps: 1,
+      bevelSize: 0.009,
+      bevelThickness: 0.009
+    });
+    bladeGeo.center();
+    const bladeMesh = new THREE.Mesh(bladeGeo, copperBladeMat);
+    bladeMesh.position.set(0.0, 0.26, 0);
+    this.vmPickaxe.add(bladeMesh);
+
+    // Forged bronze socket ring locking blade to shaft
+    const collar = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.075, 0.072), this.sceneManager.bronzeMaterial);
+    collar.position.set(0, 0.265, 0);
+    this.vmPickaxe.add(collar);
+
+    this.vmPickaxe.position.set(0.28, -0.32, -0.78);
+    this.vmPickaxe.rotation.set(0.22, -0.44, 0.22);
     this.vmRoot.add(this.vmPickaxe);
 
-    // Chisel & Wooden Mallet
+    // Detailed Stonemason Mallet & Flanged Bronze Chisel
     this.vmChisel = new THREE.Group();
-    const mallet = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.16, 8), this.sceneManager.woodMaterial);
-    mallet.rotation.z = Math.PI * 0.5;
-    mallet.position.set(0.24, -0.28, -0.66);
-    this.vmChisel.add(mallet);
+    const malletHead = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.17, 10), this.sceneManager.woodMaterial);
+    malletHead.rotation.z = Math.PI * 0.5;
+    malletHead.position.set(0.24, -0.26, -0.66);
+    this.vmChisel.add(malletHead);
 
-    const chiselBar = new THREE.Mesh(new THREE.BoxGeometry(0.028, 0.028, 0.26), copperMat);
+    const malletBand = new THREE.Mesh(new THREE.CylinderGeometry(0.064, 0.064, 0.04, 10), this.sceneManager.bronzeMaterial);
+    malletBand.rotation.z = Math.PI * 0.5;
+    malletBand.position.set(0.24, -0.26, -0.66);
+    this.vmChisel.add(malletBand);
+
+    const malletShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, 0.24, 8), this.sceneManager.woodMaterial);
+    malletShaft.position.set(0.24, -0.39, -0.66);
+    this.vmChisel.add(malletShaft);
+
+    const chiselBar = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.02, 0.28, 6), copperBladeMat);
     chiselBar.position.set(-0.18, -0.30, -0.66);
-    chiselBar.rotation.set(0.25, 0.35, 0);
+    chiselBar.rotation.set(Math.PI * 0.5 + 0.25, 0, -0.32);
     this.vmChisel.add(chiselBar);
     this.vmChisel.visible = false;
     this.vmRoot.add(this.vmChisel);
@@ -746,6 +801,9 @@ export class InteractionLoop {
       strikePt.z = Math.max(115, Math.min(129, this.physics.player.position.z));
 
       this.physics.spawnQuarryRocks(strikePt, pickStats.rocksPerStrike);
+      // Bright metallic pick sparks + billowing cliff dust cloud
+      this.physics.spawnParticles(strikePt, 6, 0xffe07d, 4.2, -12.0, 0.32, 0.65);
+      this.physics.spawnDustCloud(strikePt, 4, 0xebd09a, 1.85);
       this.state.stats.stonesQuarried += pickStats.rocksPerStrike;
       this.callbacks.onStatsChanged?.();
       return;
@@ -768,19 +826,14 @@ export class InteractionLoop {
       this.actionCooldown = pickStats.carveCooldown;
       this.audio.playChiselScrape();
 
-      // Show rough/carved block on bench and emit flying sandstone chips
+      // Show rough/carved block on bench and emit flying sandstone chips + chisel dust
       const bp = this.sceneManager.stations.bench.position;
       this.sceneManager.benchRoughBlockMesh.visible = false;
       this.sceneManager.benchCarvedBlockMesh.visible = true;
-      this.physics.spawnParticles(
-        this._tmpV.set(bp.x - 0.2, bp.y + 1.55, bp.z),
-        7,
-        0xf3d79b,
-        2.6,
-        -11.0,
-        0.42,
-        0.72
-      );
+      const chipPt = this._tmpV.set(bp.x - 0.2, bp.y + 1.55, bp.z);
+      this.physics.spawnParticles(chipPt, 8, 0xf3d79b, 2.8, -11.5, 0.42, 0.72);
+      this.physics.spawnParticles(chipPt, 3, 0xffe48a, 3.6, -12.0, 0.25, 0.48);
+      this.physics.spawnDustCloud(chipPt, 2, 0xf6e4be, 1.05);
 
       const batch = Math.min(inv.rough, pickStats.carveBatch);
       inv.rough -= batch;
@@ -890,7 +943,8 @@ export class InteractionLoop {
             }
             if (isFirst) {
               this.audio.playStoneThud(0.95 + Math.random() * 0.12);
-              this.physics.spawnParticles(targetWorld, 8, 0xf1d69c, 2.2, -6.5, 0.45, 0.9);
+              this.physics.spawnParticles(targetWorld, 8, 0xf1d69c, 2.2, -9.5, 0.45, 0.9);
+              this.physics.spawnDustCloud(targetWorld, 5, 0xf5e2b8, 2.15);
             }
             if (this.pyramid.apexPlaced && !this.state.stats.immortalVizierUnlocked) {
               this.state.stats.immortalVizierUnlocked = true;
