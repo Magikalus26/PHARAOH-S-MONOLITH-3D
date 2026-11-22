@@ -1,0 +1,25 @@
+{
+  "name": "Pharaoh's Monolith 3D",
+  "short_name": "Pharaoh 3D",
+  "description": "Build the 1,005,840-block Great Pyramid block by block in 3D.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EED296",
+  "theme_color": "#C89535",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

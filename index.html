@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Pharaoh 3D" />
+  <meta name="theme-color" content="#C89535" />
+  <title>PHARAOH'S MONOLITH 3D</title>
+
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icon-512.png" />
+  <link rel="icon" type="image/png" href="./favicon.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Crimson+Pro:wght@600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="state-menu">
+  <!-- Fullscreen 3D WebGL Canvas -->
+  <canvas id="game-canvas" aria-label="Pharaoh's Monolith 3D World"></canvas>
+
+  <!-- ==================== MAIN MENU (MENU STATE ONLY) ==================== -->
+  <div id="menu-overlay" role="dialog" aria-label="Main Menu">
+    <div class="menu-hieroglyph-frame" aria-hidden="true"></div>
+
+    <!-- Top Corner Badges matching Drive Concept Art -->
+    <header class="menu-top-bar">
+      <div class="pharaoh-badge" id="menu-pharaoh-badge" title="Pharaoh's Royal Seal">
+        <svg viewBox="0 0 64 64" width="44" height="44" aria-hidden="true">
+          <defs>
+            <linearGradient id="goldBadge" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#FCE18A"/>
+              <stop offset="50%" stop-color="#D9A032"/>
+              <stop offset="100%" stop-color="#8C5914"/>
+            </linearGradient>
+          </defs>
+          <!-- Nemes Royal Headdress -->
+          <path d="M12 46 C10 24 18 11 32 11 C46 11 54 24 52 46 L46 53 L40 43 L24 43 L18 53 Z" fill="url(#goldBadge)" stroke="#4A2C0A" stroke-width="2"/>
+          <!-- Lapis Stripes -->
+          <path d="M15 24 H49 M13 31 H51 M13 38 H51" stroke="#224B8A" stroke-width="3.2"/>
+          <!-- Face -->
+          <path d="M23 24 C23 19 41 19 41 24 L40 37 C38 43 26 43 24 37 Z" fill="#E9B87A" stroke="#5A3614" stroke-width="1.6"/>
+          <!-- Eyes & Royal Beard -->
+          <path d="M26 29 H30 M34 29 H38" stroke="#22170C" stroke-width="2" stroke-linecap="round"/>
+          <path d="M29 36 H35" stroke="#7A3F20" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="29.5" y="41" width="5" height="9" rx="2" fill="#224B8A" stroke="#F4C74F" stroke-width="1.2"/>
+          <!-- Golden Cobra Uraeus -->
+          <circle cx="32" cy="17" r="3" fill="#FFD966" stroke="#7A4210" stroke-width="1.2"/>
+        </svg>
+      </div>
+
+      <button class="menu-settings-tile" id="menu-quick-options" aria-label="Options & Audio">
+        <svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">
+          <!-- Gear -->
+          <g fill="#7A3F1D" stroke="#45210C" stroke-width="1.5">
+            <circle cx="26" cy="30" r="10"/>
+            <rect x="23" y="13" width="6" height="34" rx="2"/>
+            <rect x="9" y="27" width="34" height="6" rx="2"/>
+            <rect x="23" y="13" width="6" height="34" rx="2" transform="rotate(45 26 30)"/>
+            <rect x="23" y="13" width="6" height="34" rx="2" transform="rotate(-45 26 30)"/>
+          </g>
+          <circle cx="26" cy="30" r="5" fill="#EBD09E" stroke="#45210C" stroke-width="1.5"/>
+          <!-- Musical Note -->
+          <path d="M44 45 V28 L55 25 V41" fill="none" stroke="#5E2D12" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="41" cy="45" r="4.2" fill="#7A3F1D" stroke="#45210C" stroke-width="1.2"/>
+          <circle cx="52" cy="41" r="4.2" fill="#7A3F1D" stroke="#45210C" stroke-width="1.2"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Ornate Eye-of-Horus Golden Cartouche Logo -->
+    <section class="cartouche-hero" aria-label="Pharaoh's Monolith 3D">
+      <div class="cartouche-eye-crest">
+        <svg viewBox="0 0 110 56" width="92" height="46" aria-hidden="true">
+          <!-- Eye of Horus (Wedjat) in Lapis & Gold -->
+          <path d="M16 14 Q52 2 92 16" fill="none" stroke="#1E437A" stroke-width="5.5" stroke-linecap="round"/>
+          <path d="M22 28 Q54 10 86 28 Q54 42 22 28 Z" fill="#FAF0D2" stroke="#1E437A" stroke-width="4.2"/>
+          <circle cx="54" cy="27" r="7.5" fill="#1E437A"/>
+          <circle cx="52" cy="25" r="2.2" fill="#FFE89E"/>
+          <path d="M52 38 L47 52" stroke="#1E437A" stroke-width="4.2" stroke-linecap="round"/>
+          <path d="M59 37 C64 47 74 52 80 46 C83 43 79 39 75 42" fill="none" stroke="#1E437A" stroke-width="4" stroke-linecap="round"/>
+          <path d="M84 28 L98 25" stroke="#1E437A" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="cartouche-plate">
+        <div class="cartouche-inlay-ring"></div>
+        <div class="cartouche-glyphs left" aria-hidden="true">
+          <svg viewBox="0 0 20 56" width="16" height="44" fill="none" stroke="#6B3F10" stroke-width="1.8" stroke-linecap="round">
+            <!-- Ankh -->
+            <ellipse cx="10" cy="7" rx="3.5" ry="4.5"/>
+            <path d="M10 11.5 V20 M5.5 14.5 H14.5"/>
+            <!-- Sun Disc -->
+            <circle cx="10" cy="28" r="4.5"/>
+            <circle cx="10" cy="28" r="1.4" fill="#6B3F10"/>
+            <!-- Pyramid & Reed -->
+            <path d="M4 44 L10 36 L16 44 Z"/>
+            <path d="M5 50 H15 M7 53 H13"/>
+          </svg>
+        </div>
+        <div class="cartouche-title-stack">
+          <div class="title-line-1">PHARAOH’S</div>
+          <div class="title-line-2">MONOLITH</div>
+        </div>
+        <div class="cartouche-glyphs right" aria-hidden="true">
+          <svg viewBox="0 0 20 56" width="16" height="44" fill="none" stroke="#6B3F10" stroke-width="1.8" stroke-linecap="round">
+            <!-- Scarab / Winged Disc -->
+            <ellipse cx="10" cy="9" rx="3.2" ry="4.5" fill="#6B3F10" fill-opacity="0.22"/>
+            <path d="M3 8 Q6 6 7 9 M17 8 Q14 6 13 9 M4 12 L7 11 M16 12 L13 11"/>
+            <!-- Feather of Ma'at -->
+            <path d="M10 21 C14 23 14 31 10 34 C8 31 8 24 10 21 Z"/>
+            <path d="M10 34 V37"/>
+            <!-- Djed Pillar -->
+            <path d="M10 42 V53 M6 44 H14 M6 47 H14 M5 53 H15"/>
+          </svg>
+        </div>
+      </div>
+      <div class="cartouche-3d-badge">3D</div>
+      <div class="menu-vizier-ribbon hidden" id="menu-vizier-ribbon">★ IMMORTAL VIZIER ★</div>
+    </section>
+
+    <!-- Open Scenic Window (shows live orbiting 3D sunlit desert pyramid) -->
+    <div class="menu-scenic-spacer"></div>
+
+    <!-- 4 Stacked Menu Buttons Matching Drive Blueprint -->
+    <nav class="menu-button-stack" aria-label="Menu Actions">
+      <button class="btn-play-winged" id="btn-menu-play">
+        <svg class="wing wing-left" viewBox="0 0 68 38" width="52" height="30" aria-hidden="true">
+          <path d="M66 10 C46 10 26 6 4 2 C10 12 22 18 36 19 C22 20 12 22 6 24 C16 28 32 28 46 26 C32 29 22 32 16 34 C30 36 50 32 66 26 Z" fill="url(#wingGold)" stroke="#5E360A" stroke-width="2"/>
+          <defs>
+            <linearGradient id="wingGold" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#FFF2A6"/>
+              <stop offset="55%" stop-color="#E5AE38"/>
+              <stop offset="100%" stop-color="#A66A14"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="btn-play-inner">JOUER</span>
+        <svg class="wing wing-right" viewBox="0 0 68 38" width="52" height="30" aria-hidden="true">
+          <path d="M2 10 C22 10 42 6 64 2 C58 12 46 18 32 19 C46 20 56 22 62 24 C52 28 36 28 22 26 C36 29 46 32 52 34 C38 36 18 32 2 26 Z" fill="url(#wingGold)" stroke="#5E360A" stroke-width="2"/>
+        </svg>
+      </button>
+
+      <button class="btn-papyrus-menu" id="btn-menu-quests">
+        <span class="menu-btn-icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48" width="32" height="32">
+            <path d="M12 10 H36 C39 10 40 13 38 15 V35 C38 39 35 41 31 41 H13 C9 41 8 37 10 35 V15 C8 13 9 10 12 10 Z" fill="#E6BE78" stroke="#5A3414" stroke-width="2.4"/>
+            <ellipse cx="12" cy="13" rx="4" ry="3" fill="#C9964B" stroke="#5A3414" stroke-width="2"/>
+            <ellipse cx="34" cy="38" rx="4.5" ry="3" fill="#C9964B" stroke="#5A3414" stroke-width="2"/>
+            <path d="M17 19 H31 M17 25 H29 M17 31 H26" stroke="#6E411B" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="menu-btn-label">LIVRE DES QUÊTES</span>
+        <span class="menu-notify-dot hidden" id="menu-quest-dot"></span>
+      </button>
+
+      <button class="btn-papyrus-menu" id="btn-menu-upgrades">
+        <span class="menu-btn-icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48" width="32" height="32">
+            <!-- Chisel & Mallet in Woven Reed Basket -->
+            <path d="M16 24 L11 11 L16 9 L21 23 Z" fill="#5A8AC2" stroke="#362210" stroke-width="2"/>
+            <path d="M29 24 L37 11 L41 14 L33 25 Z" fill="#C78A4A" stroke="#362210" stroke-width="2"/>
+            <path d="M10 24 H38 L34 39 C33 41 15 41 14 39 Z" fill="#C98A42" stroke="#5A3414" stroke-width="2.4"/>
+            <path d="M12 29 H36 M13 34 H35" stroke="#7A481B" stroke-width="2"/>
+          </svg>
+        </span>
+        <span class="menu-btn-label">AMÉLIORATIONS<br/>&amp; OUTILS</span>
+      </button>
+
+      <button class="btn-papyrus-menu" id="btn-menu-options">
+        <span class="menu-btn-label solo">OPTIONS &amp; SAUVEGARDE</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ==================== IN-GAME HUD (PLAYING STATE ONLY) ==================== -->
+  <div id="hud-root" aria-label="In-Game HUD">
+    <!-- Responsive 2-Row Egyptian Papyrus Top Bar -->
+    <div class="hud-top-stack">
+      <div class="hud-row hud-stats-row">
+        <div class="hud-stat">
+          <span class="stat-k">BLOCKS</span>
+          <span class="stat-v" id="hud-blocks">0 / 1,005,840</span>
+        </div>
+        <div class="hud-stat compact">
+          <span class="stat-k">LAYER</span>
+          <span class="stat-v" id="hud-layer">1 / 144</span>
+        </div>
+        <div class="hud-stat compact">
+          <span class="stat-k">DEBEN</span>
+          <span class="stat-v gold-ink" id="hud-deben">🪙 0</span>
+        </div>
+      </div>
+
+      <div class="hud-row hud-actions-row">
+        <button class="hud-chip" id="hud-home" title="Main Menu">⌂</button>
+        <button class="hud-chip" id="hud-sound" title="Toggle Sound">🔊</button>
+        <button class="hud-chip with-dot" id="hud-quests" title="Quest Codex">
+          📜 Quests<span class="hud-dot hidden" id="hud-quest-dot"></span>
+        </button>
+        <button class="hud-chip" id="hud-upgrades" title="Upgrades & Tools">⚒ Tools</button>
+        <div class="hud-carry-pill" id="hud-carry">🪨0 🧱0 🛷0</div>
+      </div>
+
+      <!-- Pinned Active Quest Scroll Card -->
+      <button class="hud-quest-scroll" id="hud-pinned-quest">
+        <span class="q-scroll-icon">📜</span>
+        <span class="q-scroll-body">
+          <span class="q-scroll-title" id="pinned-q-title">Quarry Awakening</span>
+          <span class="q-scroll-bar-wrap">
+            <span class="q-scroll-bar" id="pinned-q-bar" style="width:0%"></span>
+          </span>
+        </span>
+        <span class="q-scroll-prog" id="pinned-q-prog">0/4</span>
+      </button>
+    </div>
+
+    <!-- Subtle Golden Crosshair -->
+    <div class="hud-crosshair" id="hud-crosshair" aria-hidden="true">
+      <span class="ch-dot"></span>
+    </div>
+
+    <!-- Bottom-Left Virtual Floating Thumbstick Zone -->
+    <div id="joystick-zone" aria-label="Movement Joystick">
+      <div class="joystick-base" id="joystick-base">
+        <div class="joystick-knob" id="joystick-knob"></div>
+      </div>
+    </div>
+
+    <!-- Bottom-Right Contextual Controls + Terracotta Action Seal -->
+    <div class="hud-right-controls">
+      <div class="hud-context-pills">
+        <button class="ctx-pill gold hidden" id="btn-pull-sled">🛷 PULL SLED</button>
+        <button class="ctx-pill parchment hidden" id="btn-place-mode">Mode: PLACE · 1×1</button>
+      </div>
+      <button class="action-seal" id="btn-action" aria-label="Context Action">
+        <span class="seal-ring"></span>
+        <span class="seal-icon" id="action-seal-icon">⛏️</span>
+        <span class="seal-label" id="action-seal-label">MINE</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== MODALS & TOAST ==================== -->
+  <div id="modal-codex" class="modal-backdrop hidden"></div>
+  <div id="modal-upgrades" class="modal-backdrop hidden"></div>
+  <div id="modal-options" class="modal-backdrop hidden"></div>
+
+  <div id="toast-banner" class="toast-banner hidden" role="status" aria-live="polite"></div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
